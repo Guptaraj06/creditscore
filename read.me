@@ -1,0 +1,79 @@
+Wallet Credit Scoring - Aave V2 Behavior-Based
+Objective
+Score wallets from 0–1000 based on DeFi behavior on Aave V2. Higher scores represent more reliable, less risky usage.
+
+Features Used
+1.Number of deposits
+2.borrows
+3.repays
+4.redeems
+5.liquidations
+6.Total USD deposited
+7.Ratio of repays to borrows
+8.Ratio of borrow to deposit
+9.No. of active days
+10.Average number of transaction
+
+
+DECIMALS={
+    'USDC':6,
+    'WMATIC':18,
+    'DAI':18,
+    'WBTC':8,
+    'WETH':18,
+    'USDT':6,
+    'WPOL':18,
+    'AAVE':18
+}
+I have used decimals to make precision-friendly calculation
+
+Scoring Formula
+Base_Score = 500
+1.Ratio of repays to borrows 
+   --if someone did not pays its debt then penalizes by it larger weight 
+               score-=(1-ratio)*400
+   --if someone took debt and paid it all then rewarded wth score of 
+               score+=100 
+   --if did not borrow aything ,rewarded with 
+               score+=50
+
+2.Ratio of borrow to deposit 
+   --if ratio is larger then it seem to be risky so set a threshold of 0.6 
+     if greater than it then penalize with 
+               score-=min(ratio*200,50)
+
+3.liquidation call 
+   --larger no. of liquidation call means it is risky behaviour so penalizes it with 
+             score-=min(call*200,750)
+4.No. of active days 
+   --someone acitvely made some transaction rewarded with score of 
+            score+=min(day*5,75)
+
+5.Average No. of transaction 
+   --if there is more frequent no. of transaction then it is unsafe/bot behaviour
+     so no. of transaction >10 
+          score-=min((txn-10)*15,50)
+Scores are capped between 0 and 1000
+
+Output
+CSV file with wallet address and credit score.
+
+After generating heuristic scores:
+
+Train RandomForestRegressor, LightGBM, and Neural Network (Keras) using features.
+
+Use RMSE as loss or metric.
+
+Split data (e.g., 80/20), apply early stopping, tune hyperparameters.
+
+RandomForestRegressor-explains almost 99% of variation in the data(r2_score)
+
+LightGBM -about 95% of variation in the data
+
+Neural Network-about 95% of variation in the data 
+
+well RandomForestRegressor is doing much better job.
+
+
+
+
